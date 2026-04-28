@@ -12,6 +12,7 @@ app = FastAPI(
 
 ### Class endpoints ###
 
+
 @app.get("/")
 def root():
     return {"message": "Hello, World"}
@@ -26,7 +27,7 @@ def get_status():
 def get_about():
     return {
         "project": "My First API",
-        "author": "Yeromina Daria",  
+        "author": "Yeromina Daria",
         "course": "Applied Programming",
     }
 
@@ -35,7 +36,9 @@ def get_about():
 def greet_name(name: str):
     return {"message": f"Hello, {name}!"}
 
+
 ### Homework endpoints ###
+
 
 @app.get("/square/{number}")
 def calculate_square(number: int):
@@ -50,17 +53,17 @@ def calculate_square(number: int):
 @app.get("/student")
 def get_student():
     return {
-        "name": "Daria Yeromina",  
-        "semester": 1,              
+        "name": "Daria Yeromina",
+        "semester": 1,
         "course": "Wirtschaftsinformatik",
-        "university": "HS Coburg"    
+        "university": "HS Coburg",
     }
 
 
 @app.get("/double/{number}")
 def calculate_double(number: int):
     result = number * 2
-    return{
+    return {
         "number": number,
         "double": result,
         "calculation": f"{number} * 2 = {result}",
@@ -73,8 +76,4 @@ def check_even(number: int):
         result = "even"
     else:
         result = "odd"
-    return {
-        "number": number,
-        "type": result
-    }
-
+    return {"number": number, "type": result}
