@@ -54,7 +54,7 @@ Während der Umsetzung hatte ich kleinere Schwierigkeiten mit:
 - kleinen Fehlern wie Einrückungen oder Tippfehlern
 - Verständnis von Path-Parametern ({number}, {name})
 
-## 3. 💡 How did I overcome them
+## 3. 💡 How did I overcome them?
 
 Ich habe die Probleme gelöst, indem ich:
 
