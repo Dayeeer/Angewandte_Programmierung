@@ -87,12 +87,14 @@ def check_even(number: int):
 class NoteCreate(BaseModel):
     title: str
     content: str
+    category: str = "general"
 
 
 class Note(BaseModel):
     id: int
     title: str
     content: str
+    category: str = "general"
     created_at: str
 
 
@@ -137,6 +139,7 @@ def create_note(note: NoteCreate):
         id=note_id_counter,
         title=note.title,
         content=note.content,
+        category=note.category,
         created_at=datetime.now(timezone.utc).isoformat(),
     )
 
@@ -151,3 +154,65 @@ def list_notes() -> list[Note]:
     """Get a list of all notes"""
     notes_db, _ = load_notes()
     return notes_db
+
+@app.get("/notes/stats")
+def get_notes_stats():
+    """Get statistics about notes"""
+    
+    notes_db, _ = load_notes()
+    # Count by category
+    categories = {}
+    for note in notes_db:
+        if note.category in categories:
+            categories[note.category] += 1
+        else:
+            categories[note.category] = 1
+    
+    return {
+        "total_notes": len(notes_db),
+        "by_category": categories
+    }
+
+
+@app.get("/notes/{note_id}")
+def get_note(note_id: int):
+    """Get a specific note by ID"""
+    notes_db, _ = load_notes()
+    for note in notes_db:
+        if note.id == note_id:
+            return note
+    
+    # Not found - raise 404 error
+    raise HTTPException(
+        status_code=404,
+        detail=f"Note with ID {note_id} not found"
+    )
+
+
+@app.get("/notes/category/{category}")
+def get_notes_by_category(category: str):
+    """Get all notes in a specific category"""
+    filtered_notes = []
+    
+    notes_db, _ = load_notes()
+
+    for note in notes_db:
+        if note.category == category:
+            filtered_notes.append(note)
+    
+    return filtered_notes
+
+
+@app.delete("/notes/{note_id}")
+def delete_note(note_id: int):
+    """Delete a note by ID"""
+
+    notes_db, _ = load_notes()
+    
+    for i, note in enumerate(notes_db):
+        if note.id == note_id:
+            notes_db.pop(i)
+            save_notes(notes_db)
+            return {"message": "Note deleted"}
+    
+    raise HTTPException(404, "Note not found")

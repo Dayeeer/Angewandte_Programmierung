@@ -63,36 +63,53 @@ Ich habe die Probleme gelöst, indem ich:
 - mir die Syntax mit Hilfe von AI erklären lassen habe
 
 
-## Week 1
+### Week 1, day 2 ###
 
-### Day 1
+### 1. ✅ What did I accomplish?
 
-#### 1. ✅ What did I accomplish?
+Am zweiten Kurstag habe ich die Grundlagen von Python vertieft und eine Note-Taking API mit FastAPI erweitert.
 
+Ich habe gelernt:
 
+- Variablen und Datentypen (str, int, list, dict)
+- Funktionen und deren Aufbau (Parameter, return)
+- F-Strings zur Formatierung von Text
+- Unterschied zwischen GET und POST
+- JSON als Datenformat für APIs
 
+Außerdem habe ich meine API erweitert:
 
+- POST /notes → Notizen erstellen
+- GET /notes → alle Notizen anzeigen
+- GET /notes/{note_id} → einzelne Notiz abrufen
 
+Zusätzlich habe ich:
 
----
+- Kategorien zu Notizen hinzugefügt
+- Notizen in einer JSON-Datei gespeichert (notes.json)
+- Daten persistent gemacht (bleiben nach Neustart erhalten)
+
 
 #### 2. 🚧 What challenges did I face?
 
+Ein größeres Problem trat nach der Erweiterung mit dem Feld category auf.
+Die bereits gespeicherten Notizen enthielten dieses Feld nicht, wodurch ein 500 Internal Server Error entstand.
 
-
-
-
-
----
 
 #### 3. 💡 How did I overcome them?
 
+Um das Problem zu lösen, musste ich:
 
+- alle alten Notizen in notes.json löschen
+- neue Notizen mit dem Feld category erstellen
+Danach funktionierte die API wieder korrekt.
 
+Für die Zukunft habe ich eine Verbesserung umgesetzt:
+category: str = "general"
 
+Dadurch wird automatisch eine Standardkategorie gesetzt, falls keine angegeben wird.
+So bleiben auch ältere oder unvollständige Daten kompatibel.
 
-
----
 
 ### Day 2
 
