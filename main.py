@@ -155,10 +155,11 @@ def list_notes() -> list[Note]:
     notes_db, _ = load_notes()
     return notes_db
 
+
 @app.get("/notes/stats")
 def get_notes_stats():
     """Get statistics about notes"""
-    
+
     notes_db, _ = load_notes()
     # Count by category
     categories = {}
@@ -167,11 +168,8 @@ def get_notes_stats():
             categories[note.category] += 1
         else:
             categories[note.category] = 1
-    
-    return {
-        "total_notes": len(notes_db),
-        "by_category": categories
-    }
+
+    return {"total_notes": len(notes_db), "by_category": categories}
 
 
 @app.get("/notes/{note_id}")
@@ -181,25 +179,22 @@ def get_note(note_id: int):
     for note in notes_db:
         if note.id == note_id:
             return note
-    
+
     # Not found - raise 404 error
-    raise HTTPException(
-        status_code=404,
-        detail=f"Note with ID {note_id} not found"
-    )
+    raise HTTPException(status_code=404, detail=f"Note with ID {note_id} not found")
 
 
 @app.get("/notes/category/{category}")
 def get_notes_by_category(category: str):
     """Get all notes in a specific category"""
     filtered_notes = []
-    
+
     notes_db, _ = load_notes()
 
     for note in notes_db:
         if note.category == category:
             filtered_notes.append(note)
-    
+
     return filtered_notes
 
 
@@ -208,11 +203,43 @@ def delete_note(note_id: int):
     """Delete a note by ID"""
 
     notes_db, _ = load_notes()
-    
+
     for i, note in enumerate(notes_db):
         if note.id == note_id:
             notes_db.pop(i)
             save_notes(notes_db)
             return {"message": "Note deleted"}
-    
+
     raise HTTPException(404, "Note not found")
+
+
+############################################
+### CRUD ENDPOINTS (Day 3)
+############################################
+
+
+@app.get("/queryparameters")
+def query_parameters(param1: str = None, param2: int = None) -> dict:
+    """
+    Example endpoint to demonstrate query parameters
+
+    - **param1**: A string parameter (optional)
+    - **param2**: An integer parameter (optional)
+
+    Return a JSON object with the provided parameters
+    """
+    print("start query_parameters")
+    print("param1", param1, "param2", param2)
+
+    namen = ["martin", "sophia", "michael", "emma", "maria", "matthias"]
+
+    if not param1:
+        return {"namen": namen}
+
+    namen_gefiltert = []
+    for name in namen:
+        print(name)
+        if param1 and param1 in name:
+            namen_gefiltert.append(name)
+
+    return {"param1": param1, "param2": param2, "namen": namen_gefiltert}

@@ -92,11 +92,21 @@ Zusätzlich habe ich:
 
 #### 2. 🚧 What challenges did I face?
 
+# 1 
 Ein größeres Problem trat nach der Erweiterung mit dem Feld category auf.
 Die bereits gespeicherten Notizen enthielten dieses Feld nicht, wodurch ein 500 Internal Server Error entstand.
 
 
+# 2
+Ein weiteres Problem trat bei der Definition der Endpoints auf.
+Der Endpoint /notes/stats wurde nach /notes/{note_id} definiert, wodurch FastAPI die Anfrage falsch interpretiert hat.
+
+Das führte dazu, dass der String "stats" als note_id behandelt wurde, was einen 422 Fehler (Validation Error) verursachte.
+
+
 #### 3. 💡 How did I overcome them?
+
+# 1 
 
 Um das Problem zu lösen, musste ich:
 
@@ -110,8 +120,13 @@ category: str = "general"
 Dadurch wird automatisch eine Standardkategorie gesetzt, falls keine angegeben wird.
 So bleiben auch ältere oder unvollständige Daten kompatibel.
 
+# 2 
+Die Lösung bestand darin, die Reihenfolge der Endpoints zu ändern:
+spezifischere Routen (z. B. /notes/stats) müssen vor allgemeinen Routen (/notes/{note_id}) definiert werden
+Nach der Anpassung funktionierte der Endpoint korrekt.
 
-### Day 2
+
+### Week 1, day 3###
 
 #### 1. ✅ What did I accomplish?
 
