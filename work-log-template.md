@@ -130,25 +130,135 @@ Nach der Anpassung funktionierte der Endpoint korrekt.
 
 #### 1. ✅ What did I accomplish?
 
+Am dritten Tag habe ich meine bestehende Note API gezielt erweitert und an die REST-Prinzipien angepasst.
 
+Zunächst habe ich den Unterschied zwischen Path-Parametern und Query-Parametern praktisch umgesetzt:
 
+- Path-Parameter zur Identifikation einzelner Ressourcen (/notes/{id})
+- Query-Parameter zur Filterung von Listen (/notes?category=...)
 
+Darauf aufbauend habe ich den bestehenden GET-Endpoint so erweitert, dass er mehrere Filter gleichzeitig unterstützt:
 
+- Kategorie
+- Suchbegriff (Titel und Inhalt)
+- Tags
+- Datumsbereich
 
----
+Ein weiterer wichtiger Schritt war die Einführung von Tags als zusätzliches Datenfeld sowie die Implementierung von Resource Relationships:
+
+/tags → Liste aller Tags
+/tags/{tag}/notes → alle Notizen mit einem bestimmten Tag
+
+Zusätzlich habe ich neue Endpoints für Kategorien als eigene Ressource ergänzt:
+
+/categories
+/categories/{category}/notes
+
+Ich habe außerdem einen Statistik-Endpunkt (/notes/stats) implementiert, der:
+
+- die Gesamtanzahl der Notizen
+- die Verteilung nach Kategorien
+- die meistgenutzten Tags
+- die Anzahl der eindeutigen Tags
+
+berechnet.
+
+Ein weiterer zentraler Bestandteil war die Implementierung von PUT und PATCH:
+
+- PUT für vollständige Updates
+- PATCH für partielle Updates einzelner Felder
+
+Der größte Schritt war die Migration von JSON-Dateien zu einer SQLite-Datenbank mit SQLModel.
+Dabei habe ich:
+
+- Datenbankmodelle (Note, Tag) definiert
+- eine Many-to-Many-Beziehung zwischen Notizen und Tags umgesetzt
+- mit Sessions (SessionDep) gearbeitet
+- alle bisherigen Endpoints auf Datenbankabfragen umgestellt
+
+Zusätzlich habe ich meinen Code in der Datei `main.py` neu strukturiert, um eine bessere Übersicht und Wartbarkeit zu erreichen.  
+Ich habe die einzelnen Komponenten klar getrennt (z. B. Datenbankmodelle, API-Modelle, Endpoints) und die Reihenfolge so angepasst, dass der Aufbau logisch nachvollziehbar ist.  
+
+Diese Struktur erleichtert nicht nur das Verständnis, sondern auch zukünftige Erweiterungen der API.
+
+Dadurch arbeitet die API jetzt mit einer echten Datenbank und ist deutlich realistischer aufgebaut.
+
 
 #### 2. 🚧 What challenges did I face?
 
+Eine der ersten Herausforderungen war, dass der Server nicht gestartet ist aufgrund eines fehlenden Pakets:
+
+ModuleNotFoundError: No module named 'sqlmodel'
+
+Das Problem lag darin, dass die neue Datenbanktechnologie zwar im Code integriert war, aber die entsprechende Bibliothek noch nicht installiert war.
+
+Ein weiteres Problem war das Verständnis der Datenmigration von JSON zur Datenbank.
+Zunächst war unklar, warum Änderungen nicht mehr in der JSON-Datei sichtbar waren.
+Das hat zu Verwirrung geführt, weil ich zunächst davon ausgegangen bin, dass beide Speicher gleichzeitig verwendet werden.
+
+Zusätzlich hatte ich ein Problem damit, dass ich die Datenbankdatei notes.db zwar im Projekt hatte, aber nicht direkt sehen oder verstehen konnte, wie die Daten strukturiert sind.
+Ohne visuelle Darstellung war es schwierig zu überprüfen, ob die Beziehungen zwischen Notizen und Tags korrekt gespeichert wurden.
+
+Auch die Umsetzung der Tag-Beziehungen (Many-to-Many) war anspruchsvoll.
+Besonders schwierig war:
+
+doppelte Tags zu vermeiden
+Tags konsistent zu speichern (z. B. Groß-/Kleinschreibung)
+sicherzustellen, dass Tags korrekt mit mehreren Notizen verknüpft sind
+
+Zusätzlich gab es Schwierigkeiten bei der Implementierung von kombinierten Filtern.
+Wenn mehrere Query-Parameter gleichzeitig verwendet wurden, war es nicht sofort klar, wie diese logisch korrekt miteinander kombiniert werden müssen.
+
+Auch der Unterschied zwischen PUT und PATCH war anfangs nicht eindeutig.
+Vor allem bei PATCH war es schwierig sicherzustellen, dass nur die übergebenen Felder geändert werden und alle anderen unverändert bleiben.
 
 
 
-
-
----
 
 #### 3. 💡 How did I overcome them?
 
+Das Problem mit dem fehlenden Paket habe ich direkt über die Installation gelöst:
 
+pip install sqlmodel
+
+Danach konnte der Server korrekt starten und die Datenbank initialisiert werden.
+
+Um die Migration besser zu verstehen, habe ich gezielt Tests durchgeführt:
+
+- überprüft, ob die Datei notes.db erstellt wird
+- den Server neu gestartet und kontrolliert, ob die Daten erhalten bleiben
+- getestet, ob neue Änderungen nur in der Datenbank gespeichert werden
+
+So habe ich erkannt, dass die JSON-Datei nur einmal zur Migration verwendet wird und danach die Datenbank die einzige Datenquelle ist.
+
+Das Problem mit der Datenbankdarstellung habe ich gelöst, indem ich ein SQLite-Tool installiert habe.
+Damit konnte ich:
+
+- die Tabellenstruktur visualisieren
+- die Beziehungen zwischen notes, tags und der Link-Tabelle nachvollziehen
+- und überprüfen, ob die Daten korrekt gespeichert werden
+
+Das hat mir geholfen, die Funktionsweise der Datenbank deutlich besser zu verstehen.
+
+Die Probleme mit den Tags habe ich gelöst, indem ich:
+
+- alle Tags vereinheitlicht habe (z. B. in Kleinbuchstaben)
+- doppelte Einträge mit Sets verhindert habe
+- eine „get-or-create“-Logik verwendet habe, um bestehende Tags wiederzuverwenden
+
+Bei den Filtern bin ich systematisch vorgegangen:
+
+zunächst jeden Filter einzeln getestet
+anschließend verschiedene Kombinationen ausprobiert
+
+Dadurch konnte ich Fehler leichter erkennen und die Logik schrittweise korrigieren.
+
+Den Unterschied zwischen PUT und PATCH habe ich durch praktische Tests nachvollzogen:
+
+bei PUT alle Felder bewusst überschrieben
+bei PATCH nur einzelne Felder geändert und überprüft, ob die restlichen Daten unverändert bleiben
+
+Durch diesen direkten Vergleich konnte ich das Verhalten klar verstehen und korrekt implementieren.
 
 
 
