@@ -7,7 +7,7 @@ from pathlib import Path
 app = FastAPI(
     title="Applied Programming Course HS-Coburg",
     description="Simple note management API",
-    version="1.0.0",
+    version="2.0.0",
 )
 
 ### Class endpoints ###
@@ -76,11 +76,32 @@ def check_even(number: int):
         result = "even"
     else:
         result = "odd"
+
     return {"number": number, "type": result}
 
 
 ############################################
-### Note API Endpoints (Day 2)
+### Path Parameters Practice (Day 3)
+############################################
+
+
+@app.get("/test/123")
+def test_fixed_123():
+    return {"message": "This is the fixed endpoint for 123"}
+
+
+@app.get("/test/{value}")
+def test_value(value: str):
+    return {"value": value}
+
+
+@app.get("/test/{value}/test2/{value2}")
+def test_two_values(value: str, value2: str):
+    return {"value": value, "value2": value2}
+
+
+############################################
+### Note API Endpoints
 ############################################
 
 
@@ -88,6 +109,7 @@ class NoteCreate(BaseModel):
     title: str
     content: str
     category: str = "general"
+    tags: list[str] = []
 
 
 class Note(BaseModel):
@@ -95,6 +117,7 @@ class Note(BaseModel):
     title: str
     content: str
     category: str = "general"
+    tags: list[str] = []
     created_at: str
 
 
@@ -103,15 +126,15 @@ NOTES_FILE = Path("data/notes.json")
 
 def load_notes():
     """Load notes from JSON file and return notes list and next ID counter"""
+
     notes_db = []
     note_id_counter = 1
 
     if NOTES_FILE.exists():
-        with open(NOTES_FILE, "r") as f:
+        with open(NOTES_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
             notes_db = [Note(**note) for note in data]
 
-            # Set counter to max ID + 1
             if notes_db:
                 note_id_counter = max(note.id for note in notes_db) + 1
 
@@ -120,17 +143,16 @@ def load_notes():
 
 def save_notes(notes_db):
     """Save notes to JSON file after each change"""
-    # Ensure data directory exists
+
     NOTES_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(NOTES_FILE, "w") as f:
-        # Convert Note objects to dicts
-        notes_data = [note.dict() for note in notes_db]
-        json.dump(notes_data, f, indent=2)
+    with open(NOTES_FILE, "w", encoding="utf-8") as f:
+        notes_data = [note.model_dump() for note in notes_db]
+        json.dump(notes_data, f, indent=2, ensure_ascii=False)
 
 
 @app.post("/notes", status_code=201)
-def create_note(note: NoteCreate):
+def create_note(note: NoteCreate) -> Note:
     """Create a new note"""
 
     notes_db, note_id_counter = load_notes()
@@ -140,6 +162,7 @@ def create_note(note: NoteCreate):
         title=note.title,
         content=note.content,
         category=note.category,
+        tags=note.tags,
         created_at=datetime.now(timezone.utc).isoformat(),
     )
 
@@ -150,10 +173,40 @@ def create_note(note: NoteCreate):
 
 
 @app.get("/notes")
-def list_notes() -> list[Note]:
-    """Get a list of all notes"""
+def list_notes(
+    category: str = None,
+    search: str = None,
+    tag: str = None,
+) -> list[Note]:
+    """
+    List notes with optional filters.
+
+    - category: Filter by category
+    - search: Search in title and content
+    - tag: Filter by tag
+    """
+
     notes_db, _ = load_notes()
-    return notes_db
+    filtered_notes = []
+
+    for note in notes_db:
+        if category and note.category != category:
+            continue
+
+        if search:
+            search_lower = search.lower()
+            title_match = search_lower in note.title.lower()
+            content_match = search_lower in note.content.lower()
+
+            if not (title_match or content_match):
+                continue
+
+        if tag and tag not in note.tags:
+            continue
+
+        filtered_notes.append(note)
+
+    return filtered_notes
 
 
 @app.get("/notes/stats")
@@ -161,8 +214,9 @@ def get_notes_stats():
     """Get statistics about notes"""
 
     notes_db, _ = load_notes()
-    # Count by category
+
     categories = {}
+
     for note in notes_db:
         if note.category in categories:
             categories[note.category] += 1
@@ -173,32 +227,50 @@ def get_notes_stats():
 
 
 @app.get("/notes/{note_id}")
-def get_note(note_id: int):
+def get_note(note_id: int) -> Note:
     """Get a specific note by ID"""
+
     notes_db, _ = load_notes()
+
     for note in notes_db:
         if note.id == note_id:
             return note
 
-    # Not found - raise 404 error
-    raise HTTPException(status_code=404, detail=f"Note with ID {note_id} not found")
+    raise HTTPException(
+        status_code=404,
+        detail=f"Note with ID {note_id} not found",
+    )
 
 
-@app.get("/notes/category/{category}")
-def get_notes_by_category(category: str):
-    """Get all notes in a specific category"""
-    filtered_notes = []
+@app.put("/notes/{note_id}")
+def update_note(note_id: int, note_update: NoteCreate) -> Note:
+    """Update an existing note"""
 
     notes_db, _ = load_notes()
 
-    for note in notes_db:
-        if note.category == category:
-            filtered_notes.append(note)
+    for i, note in enumerate(notes_db):
+        if note.id == note_id:
+            updated_note = Note(
+                id=note.id,
+                title=note_update.title,
+                content=note_update.content,
+                category=note_update.category,
+                tags=note_update.tags,
+                created_at=note.created_at,
+            )
 
-    return filtered_notes
+            notes_db[i] = updated_note
+            save_notes(notes_db)
+
+            return updated_note
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"Note with ID {note_id} not found",
+    )
 
 
-@app.delete("/notes/{note_id}")
+@app.delete("/notes/{note_id}", status_code=204)
 def delete_note(note_id: int):
     """Delete a note by ID"""
 
@@ -208,28 +280,69 @@ def delete_note(note_id: int):
         if note.id == note_id:
             notes_db.pop(i)
             save_notes(notes_db)
-            return {"message": "Note deleted"}
+            return
 
-    raise HTTPException(404, "Note not found")
+    raise HTTPException(
+        status_code=404,
+        detail=f"Note with ID {note_id} not found",
+    )
+
+
+@app.get("/notes/category/{category}")
+def get_notes_by_category(category: str) -> list[Note]:
+    """Get all notes in a specific category"""
+
+    notes_db, _ = load_notes()
+    filtered_notes = []
+
+    for note in notes_db:
+        if note.category == category:
+            filtered_notes.append(note)
+
+    return filtered_notes
+
+
+@app.get("/tags")
+def list_tags() -> list[str]:
+    """Get all unique tags from all notes"""
+
+    notes_db, _ = load_notes()
+    all_tags = set()
+
+    for note in notes_db:
+        for tag in note.tags:
+            all_tags.add(tag)
+
+    return sorted(list(all_tags))
+
+
+@app.get("/tags/{tag_name}/notes")
+def get_notes_by_tag(tag_name: str) -> list[Note]:
+    """Get all notes with a specific tag"""
+
+    notes_db, _ = load_notes()
+    filtered_notes = []
+
+    for note in notes_db:
+        if tag_name in note.tags:
+            filtered_notes.append(note)
+
+    return filtered_notes
 
 
 ############################################
-### CRUD ENDPOINTS (Day 3)
+### Query Parameters Practice (Day 3)
 ############################################
 
 
 @app.get("/queryparameters")
 def query_parameters(param1: str = None, param2: int = None) -> dict:
     """
-    Example endpoint to demonstrate query parameters
+    Example endpoint to demonstrate query parameters.
 
-    - **param1**: A string parameter (optional)
-    - **param2**: An integer parameter (optional)
-
-    Return a JSON object with the provided parameters
+    - param1: A string parameter, optional
+    - param2: An integer parameter, optional
     """
-    print("start query_parameters")
-    print("param1", param1, "param2", param2)
 
     namen = ["martin", "sophia", "michael", "emma", "maria", "matthias"]
 
@@ -237,9 +350,13 @@ def query_parameters(param1: str = None, param2: int = None) -> dict:
         return {"namen": namen}
 
     namen_gefiltert = []
+
     for name in namen:
-        print(name)
-        if param1 and param1 in name:
+        if param1 in name:
             namen_gefiltert.append(name)
 
-    return {"param1": param1, "param2": param2, "namen": namen_gefiltert}
+    return {
+        "param1": param1,
+        "param2": param2,
+        "namen": namen_gefiltert,
+    }
