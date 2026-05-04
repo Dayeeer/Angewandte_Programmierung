@@ -265,34 +265,69 @@ Durch diesen direkten Vergleich konnte ich das Verhalten klar verstehen und korr
 
 ---
 
-### Day 3
+### Week 2, day 4 ###
 
 #### 1. ✅ What did I accomplish?
 
+Am vierten Tag habe ich mich vollständig auf das Thema Testing von APIs konzentriert und gelernt, wie man bestehende API-Funktionalität systematisch überprüft.
 
+In der Vorlesung habe ich zunächst anhand eines einfachen Beispiels verstanden, wie man mit pytest und der Requests Library API-Endpunkte testet. Dabei wurden grundlegende Tests für einfache Endpoints implementiert, um den Ablauf von automatisierten Tests zu verstehen.
 
+Auf dieser Grundlage habe ich zu Hause meine bereits bestehende Note API (aus den vorherigen Tagen) verwendet und eine vollständige Test-Suite dafür entwickelt. Der Fokus lag darauf, alle vorhandenen Funktionen gezielt zu überprüfen.
 
+Ich habe Tests für folgende Bereiche erstellt:
 
+- CRUD-Operationen (Erstellen, Abrufen,Aktualisieren, Löschen)
+- Filterlogik, inklusive Kombination mehrerer Query-Parameter
+- Datum-basierte Filterung
+- Statistik-Endpunkt (/notes/stats)
+- Kategorie- und Tag-Endpoints
+- Unterschied zwischen PUT und PATCH
+- Fehlerfälle, z. B. nicht existierende Ressourcen oder ungültige Eingaben
 
----
+Besonders wichtig war dabei, die Tests so zu strukturieren, dass sie unabhängig voneinander funktionieren und realistische Nutzungsszenarien abbilden.
+
+Am Ende konnte ich meine komplette API automatisiert testen und sicherstellen, dass alle Funktionen stabil und korrekt arbeiten.
+
 
 #### 2. 🚧 What challenges did I face?
 
+Eine konkrete Schwierigkeit war, dass meine Tests anfangs fehlschlugen, obwohl die API im Browser korrekt funktionierte.
+Das Problem lag daran, dass der Server während des Testlaufs nicht aktiv war, wodurch die Requests keine Verbindung herstellen konnten.
 
+Ein weiteres Problem trat bei der Filterlogik in den Tests auf.
+Ich habe zunächst feste Werte verwendet, wodurch Tests teilweise unerwartete Ergebnisse lieferten, da bereits vorhandene Daten in der Datenbank diese Werte beeinflusst haben.
 
+Zusätzlich hatte ich Schwierigkeiten bei der Validierung der Response-Daten.
+Einige Tests sind fehlgeschlagen, weil ich versucht habe, exakte Werte zu vergleichen, obwohl sich bestimmte Daten dynamisch ändern (z. B. generierte IDs oder Zeitstempel).
 
+Auch der Umgang mit PATCH-Tests war anfangs nicht eindeutig.
+Ich musste sicherstellen, dass wirklich nur die übergebenen Felder geändert werden und alle anderen Daten unverändert bleiben.
 
-
----
 
 #### 3. 💡 How did I overcome them?
 
+Das Problem mit dem nicht erreichbaren Server habe ich gelöst, indem ich konsequent mit zwei Terminals gearbeitet habe:
+
+- ein Terminal für den laufenden Server (uvicorn main:app --reload)
+- ein zweites Terminal für das Ausführen der Tests (pytest)
+
+Dadurch konnten die Tests korrekt auf die API zugreifen.
+
+Die Probleme mit den Filtern habe ich gelöst, indem ich meine Tests auf dynamische Daten umgestellt habe.
+Ich habe eindeutige Werte verwendet, sodass jeder Test unabhängig ist und keine Konflikte mit bestehenden Daten entstehen.
+
+Bei der Validierung der Responses habe ich meine Teststrategie angepasst:
+
+- statt exakter Gleichheit habe ich überprüft, ob bestimmte Felder vorhanden sind
+- und ob die Werte logisch korrekt sind (z. B. ob ein Tag enthalten ist oder die Kategorie stimmt)
+
+Den Unterschied zwischen PUT und PATCH habe ich durch gezielte Tests klar herausgearbeitet:
+
+- bei PUT habe ich bewusst alle Felder überschrieben
+- bei PATCH habe ich nur einzelne Felder geändert und anschließend überprüft, ob die restlichen unverändert bleiben
 
 
-
-
-
----
 
 ## Week 2
 
