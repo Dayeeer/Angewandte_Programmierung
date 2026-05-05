@@ -1,18 +1,33 @@
-from typing import Optional, Annotated
+from typing import Optional, Annotated, Self
 from datetime import datetime, timezone
 from pathlib import Path
 import json
+import re
 from collections import Counter
 
 from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
-from sqlmodel import SQLModel, Field, Session, create_engine, Relationship, select, col
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    field_validator,
+    model_validator,
+    Field as PydanticField,
+)
+from sqlmodel import (
+    SQLModel,
+    Field as SQLField,
+    Session,
+    create_engine,
+    Relationship,
+    select,
+    col,
+)
 from sqlalchemy import or_
 
 app = FastAPI(
     title="Applied Programming Course HS-Coburg",
     description="Note API with SQLite database, filters, tags and categories",
-    version="3.0.0",
+    version="4.0.0",
 )
 
 
@@ -28,7 +43,7 @@ def root():
 
 @app.get("/status")
 def get_status():
-    return {"status": "online", "version": "3.0.0", "day": 3}
+    return {"status": "online", "version": "4.0.0", "day": 5}
 
 
 @app.get("/about")
@@ -111,12 +126,12 @@ def test_two_values(value: str, value2: str):
 
 
 class NoteTagLink(SQLModel, table=True):
-    note_id: Optional[int] = Field(
+    note_id: Optional[int] = SQLField(
         default=None,
         foreign_key="notes.id",
         primary_key=True,
     )
-    tag_id: Optional[int] = Field(
+    tag_id: Optional[int] = SQLField(
         default=None,
         foreign_key="tags.id",
         primary_key=True,
@@ -126,11 +141,11 @@ class NoteTagLink(SQLModel, table=True):
 class Note(SQLModel, table=True):
     __tablename__ = "notes"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = SQLField(default=None, primary_key=True)
     title: str
     content: str
     category: str = "general"
-    created_at: str = Field(
+    created_at: str = SQLField(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
 
@@ -143,13 +158,28 @@ class Note(SQLModel, table=True):
 class Tag(SQLModel, table=True):
     __tablename__ = "tags"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)
+    id: Optional[int] = SQLField(default=None, primary_key=True)
+    name: str = SQLField(unique=True, index=True)
 
     notes: list[Note] = Relationship(
         back_populates="tags",
         link_model=NoteTagLink,
     )
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_name(cls, value: str) -> str:
+        value = value.strip().lower()
+
+        if len(value) < 2 or len(value) > 30:
+            raise ValueError("tag name must be 2-30 characters long")
+
+        if not re.fullmatch(r"^[a-z0-9-]+$", value):
+            raise ValueError(
+                "tag name may contain only lowercase letters, digits and dashes"
+            )
+
+        return value
 
 
 ############################################
@@ -157,18 +187,150 @@ class Tag(SQLModel, table=True):
 ############################################
 
 
+ALLOWED_CATEGORIES = {"work", "personal", "school", "ideas", "general"}
+TAG_PATTERN = re.compile(r"^[a-z0-9-]+$")
+
+
+def clean_tag_list(raw_tags: list[str] | None) -> list[str] | None:
+    if raw_tags is None:
+        return None
+
+    cleaned: list[str] = []
+    seen: set[str] = set()
+
+    for tag in raw_tags:
+        clean_tag = tag.strip().lower()
+
+        if not clean_tag:
+            raise ValueError("tags must not be empty strings")
+
+        if len(clean_tag) < 2:
+            raise ValueError("tags must be at least 2 characters long")
+
+        if len(clean_tag) > 30:
+            raise ValueError("tags must not be longer than 30 characters")
+
+        if not TAG_PATTERN.fullmatch(clean_tag):
+            raise ValueError(
+                "tags may contain only lowercase letters, digits and dashes"
+            )
+
+        if clean_tag in seen:
+            continue
+
+        seen.add(clean_tag)
+        cleaned.append(clean_tag)
+
+    return cleaned
+
+
 class NoteCreate(BaseModel):
-    title: str
-    content: str
-    category: str = "general"
-    tags: list[str] = []
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        extra="forbid",
+    )
+
+    title: str = PydanticField(
+        min_length=3,
+        max_length=100,
+        description="Short note title shown in lists",
+        examples=["Shopping list", "Meeting prep"],
+    )
+    content: str = PydanticField(
+        min_length=1,
+        max_length=10_000,
+        description="Main note text",
+        examples=["Discuss project roadmap and next tasks."],
+    )
+    category: str = PydanticField(
+        default="general",
+        min_length=2,
+        max_length=30,
+        pattern=r"^[a-z]+$",
+        description="Allowed categories: work, personal, school, ideas, general",
+        examples=["work"],
+    )
+    tags: list[str] = PydanticField(
+        default_factory=list,
+        max_length=10,
+        description="Up to 10 normalized tags",
+        examples=[["work", "urgent"]],
+    )
+
+    @field_validator("title")
+    @classmethod
+    def title_must_not_be_blank(cls, value: str) -> str:
+        if len(value.strip()) < 3:
+            raise ValueError("title must contain at least 3 non-whitespace characters")
+        return value
+
+    @field_validator("category", mode="before")
+    @classmethod
+    def normalize_category(cls, value: str) -> str:
+        return value.strip().lower()
+
+    @field_validator("category")
+    @classmethod
+    def category_must_be_allowed(cls, value: str) -> str:
+        if value not in ALLOWED_CATEGORIES:
+            raise ValueError(f"category must be one of {sorted(ALLOWED_CATEGORIES)}")
+        return value
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def clean_tags(cls, raw_tags: list[str]) -> list[str]:
+        cleaned = clean_tag_list(raw_tags)
+        return cleaned or []
+
+    @model_validator(mode="after")
+    def work_notes_need_work_tag(self) -> Self:
+        # This is a model validator because the rule depends on two fields:
+        # category and tags. A field validator would only see one field reliably.
+        if self.category == "work" and "work" not in self.tags:
+            raise ValueError("work notes must include the 'work' tag")
+        return self
 
 
 class NoteUpdate(BaseModel):
-    title: Optional[str] = None
-    content: Optional[str] = None
-    category: Optional[str] = None
-    tags: Optional[list[str]] = None
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        extra="forbid",
+    )
+
+    title: Optional[str] = PydanticField(default=None, min_length=3, max_length=100)
+    content: Optional[str] = PydanticField(
+        default=None, min_length=1, max_length=10_000
+    )
+    category: Optional[str] = PydanticField(
+        default=None, min_length=2, max_length=30, pattern=r"^[a-z]+$"
+    )
+    tags: Optional[list[str]] = PydanticField(default=None, max_length=10)
+
+    @field_validator("title")
+    @classmethod
+    def title_must_not_be_blank(cls, value: Optional[str]) -> Optional[str]:
+        if value is not None and len(value.strip()) < 3:
+            raise ValueError("title must contain at least 3 non-whitespace characters")
+        return value
+
+    @field_validator("category", mode="before")
+    @classmethod
+    def normalize_category(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        return value.strip().lower()
+
+    @field_validator("category")
+    @classmethod
+    def category_must_be_allowed(cls, value: Optional[str]) -> Optional[str]:
+        if value is not None and value not in ALLOWED_CATEGORIES:
+            raise ValueError(f"category must be one of {sorted(ALLOWED_CATEGORIES)}")
+        return value
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def clean_tags(cls, raw_tags: Optional[list[str]]) -> Optional[list[str]]:
+        return clean_tag_list(raw_tags)
 
 
 class NoteResponse(BaseModel):
@@ -205,7 +367,7 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 
 def normalize_tag(tag_name: str) -> str:
-    return tag_name.lower().strip()
+    return tag_name.strip().lower()
 
 
 def note_to_response(note: Note) -> NoteResponse:
@@ -344,7 +506,7 @@ def list_notes(
     statement = select(Note)
 
     if category:
-        statement = statement.where(Note.category == category)
+        statement = statement.where(Note.category == category.strip().lower())
 
     if search:
         statement = statement.where(
@@ -580,7 +742,7 @@ def get_notes_by_category(
 ) -> list[NoteResponse]:
     """Get all notes in a specific category"""
 
-    statement = select(Note).where(Note.category == category_name)
+    statement = select(Note).where(Note.category == category_name.strip().lower())
     notes = session.exec(statement).all()
 
     return [note_to_response(note) for note in notes]
@@ -613,5 +775,3 @@ def query_parameters(param1: str = None, param2: int = None) -> dict:
         "param2": param2,
         "namen": namen_gefiltert,
     }
-
-

@@ -329,38 +329,158 @@ Den Unterschied zwischen PUT und PATCH habe ich durch gezielte Tests klar heraus
 
 
 
-## Week 2
-
-### Day 4
+## Week 2, day 5 ###
 
 #### 1. ✅ What did I accomplish?
 
+Am fünften Tag lag der Fokus auf Datenvalidierung mit Pydantic sowie auf der Vertiefung von automatisierten Tests.
+
+Während der Vorlesung habe ich zunächst den grundlegenden Ansatz zur Validierung von Eingabedaten kennengelernt. Dabei wurde gezeigt, wie man mit Pydantic:
+
+- Eingaben einschränkt (z. B. Mindestlängen)
+- Werte normalisiert (z. B. lowercase, trim)
+- unerlaubte Felder blockiert
+- und logische Regeln zwischen Feldern definiert
+
+Anschließend habe ich meine bestehende Note API (aus den vorherigen Tagen) erweitert und eine strikte Validierung implementiert, unter anderem für:
+
+- title (keine leeren oder zu kurzen Strings)
+- category (nur definierte Werte erlaubt)
+- tags (Begrenzung der Anzahl, keine Duplikate, Normalisierung)
+- zusätzliche logische Regeln (z. B. bestimmte Tags für bestimmte Kategorien)
+
+Darauf aufbauend habe ich eine eigene Test-Suite für die Validierung erstellt (test_validation.py).
+Diese überprüft systematisch:
+
+- korrekte Eingaben
+- fehlerhafte Eingaben (422)
+- Normalisierung von Daten
+- Verhalten von PATCH
+
+Alle Tests konnten am Ende erfolgreich ausgeführt werden (16/16 bestanden).
+
+Zusätzlich habe ich im Unterricht mit einem Kommilitonen Tests ausgetauscht und dessen test_day4.py lokal ausgeführt, um die Kompatibilität zu prüfen.
 
 
-
-
-
----
 
 #### 2. 🚧 What challenges did I face?
 
+Beim Ausführen der Tests meines Kommilitonen sind nur 2 von 8 Tests erfolgreich durchgelaufen.
+Die restlichen Tests sind aus mehreren konkreten Gründen fehlgeschlagen:
+
+- Nicht vorhandene Endpoints
+Die Tests erwarteten Endpoints wie:
+
+/greetings/{name}
+/is-adult/{age}
+
+Diese existieren in meiner API nicht, da ich eine andere Struktur (Notes API) verwende.
+Dadurch kam es zu 404 Not Found Fehlern.
+
+- Falsche erwartete Response-Werte
+Ein Test erwartete z. B.:
+
+"Hello ... World!"
+
+während meine API:
+
+"Hello, World"
+
+zurückgibt.
+Dadurch sind Assertions fehlgeschlagen, obwohl die Funktion grundsätzlich korrekt war.
+
+- Fehler im Test-Code selbst
+In der Funktion test_note_lifecycle_adjusted() wurde eine Variable fake verwendet, die nicht definiert war:
+
+fake.sentence(...)
+
+Stattdessen war nur name_faker = Faker() vorhanden.
+Dies führte zu einem NameError.
+
+- Widersprüchliche Testlogik
+Einige Tests erwarteten für denselben Fall unterschiedliche Statuscodes (z. B. 200 vs. 400 bei Altersvalidierung), wodurch sie selbst logisch inkonsistent waren.
+
+Diese Kombination hat gezeigt, dass die Tests nicht für meine API geschrieben wurden, sondern für ein anderes Beispielprojekt.
 
 
 
+Eine weitere konkrete Schwierigkeit hatte ich bei der Implementierung der Validierung für Kategorien und Tags.
 
+In den ersten Versuchen wurden gültige Eingaben fälschlicherweise als ungültig erkannt.
+Zum Beispiel wurde folgende Eingabe:
 
----
+{
+  "title": "Test Note",
+  "content": "test",
+  "category": "WORK",
+  "tags": ["Test", "Work"]
+}
+
+abgelehnt, obwohl sie eigentlich gültig sein sollte.
+
+Das Problem lag daran, dass die Validierung case-sensitive war und keine Normalisierung stattgefunden hat.
+Dadurch wurden nur exakt passende Werte akzeptiert (z. B. "work"), während "WORK" oder " Work " zu Fehlern führten.
+
 
 #### 3. 💡 How did I overcome them?
 
+Zunächst habe ich die Fehlermeldungen systematisch analysiert und jeden Test einzeln betrachtet, um die Ursache zu verstehen.
+
+- Die fehlenden Endpoints habe ich testweise ergänzt, indem ich:
+
+/greetings/{name} implementiert habe
+/is-adult/{age} hinzugefügt habe
+
+Dadurch konnten die entsprechenden 404-Fehler behoben werden.
+
+- Den Fehler mit der undefinierten Variable habe ich direkt im Test-Code korrigiert:
+
+fake = Faker()
+
+Dadurch konnte der NameError behoben werden.
+
+- Die falschen erwarteten Response-Werte habe ich angepasst, sodass die Tests mit den tatsächlichen Rückgaben der API übereinstimmen.
+
+- Zusätzlich habe ich die widersprüchlichen Tests überprüft und die Logik vereinheitlicht, sodass konsistente Statuscodes erwartet werden.
+
+Nach diesen Anpassungen konnte ich die Tests erneut ausführen und sie liefen erfolgreich durch.
+
+Allerdings habe ich bewusst entschieden, diese Änderungen nicht dauerhaft in meinem Projekt zu behalten.
+Der Grund ist, dass diese Tests und Endpoints nicht zu meiner aktuellen API-Struktur passen.
+
+Daher habe ich:
+
+meine Änderungen rückgängig gemacht
+den ursprünglichen Zustand meiner API wiederhergestellt
+und mich weiterhin auf meine eigene, konsistente Struktur mit /notes, /tags und /categories konzentriert
 
 
 
+Um das Problem zu lösen, habe ich verschiedene Ansätze ausprobiert:
+
+Zunächst habe ich versucht, die erlaubten Kategorien direkt zu erweitern (z. B. "WORK", "Work" usw.).
+Dieser Ansatz war jedoch unübersichtlich und schwer wartbar.
+
+Danach habe ich erkannt, dass das eigentliche Problem nicht die Validierung selbst ist, sondern die fehlende Normalisierung der Eingabedaten.
+
+Ich habe daher die Eingaben vor der Validierung angepasst:
+
+Kategorien werden automatisch in Kleinbuchstaben umgewandelt
+führende und trailing Leerzeichen werden entfernt
+Tags werden ebenfalls normalisiert und dedupliziert
+
+Beispielsweise wird:
+
+" WORK " → "work"
+
+umgewandelt.
+
+Nach dieser Anpassung wurden gültige Eingaben korrekt akzeptiert und gleichzeitig blieb die Validierung streng für tatsächlich falsche Werte.
+
+Dieser Ansatz hat sich als deutlich stabiler und praxisnäher erwiesen, da er typische Nutzereingaben berücksichtigt und gleichzeitig saubere Daten im System garantiert.
 
 
----
-
-### Day 5
+### Week 2, day 6 ###
 
 #### 1. ✅ What did I accomplish?
 
