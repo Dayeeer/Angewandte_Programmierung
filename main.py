@@ -10,7 +10,6 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     field_validator,
-    model_validator,
     Field as PydanticField,
 )
 from sqlmodel import (
@@ -282,13 +281,13 @@ class NoteCreate(BaseModel):
         cleaned = clean_tag_list(raw_tags)
         return cleaned or []
 
-    @model_validator(mode="after")
-    def work_notes_need_work_tag(self) -> Self:
+    #  @model_validator(mode="after")
+    # def work_notes_need_work_tag(self) -> Self:
         # This is a model validator because the rule depends on two fields:
         # category and tags. A field validator would only see one field reliably.
-        if self.category == "work" and "work" not in self.tags:
-            raise ValueError("work notes must include the 'work' tag")
-        return self
+        # if self.category == "work" and "work" not in self.tags:
+            # raise ValueError("work notes must include the 'work' tag")
+        # return self
 
 
 class NoteUpdate(BaseModel):
@@ -489,8 +488,8 @@ def list_notes(
     category: str = None,
     search: str = None,
     tag: str = None,
-    created_after: str = None,
-    created_before: str = None,
+    created_after: datetime = None,
+    created_before: datetime = None,
 ) -> list[NoteResponse]:
     """
     List notes with optional filters.
@@ -517,10 +516,10 @@ def list_notes(
         )
 
     if created_after:
-        statement = statement.where(Note.created_at >= created_after)
+        statement = statement.where(Note.created_at >= created_after.isoformat())
 
     if created_before:
-        statement = statement.where(Note.created_at <= created_before)
+        statement = statement.where(Note.created_at <= created_before.isoformat())
 
     if tag:
         tag_lower = normalize_tag(tag)
