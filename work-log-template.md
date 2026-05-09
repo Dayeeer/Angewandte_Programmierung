@@ -484,32 +484,46 @@ Dieser Ansatz hat sich als deutlich stabiler und praxisnäher erwiesen, da er ty
 
 #### 1. ✅ What did I accomplish?
 
+Am sechsten Tag lag der Fokus auf zwei Themen: Python Decorators und dem Bestehen der vollständigen Referenz-Test-Suite.
+
+Zu Beginn habe ich mich mit Decorators beschäftigt. Dabei habe ich verstanden, dass ein Decorator eine Funktion „umhüllt“ und zusätzliches Verhalten vor oder nach der eigentlichen Funktion ausführen kann. Das hat mir auch geholfen, besser zu verstehen, warum FastAPI mit Schreibweisen wie @app.get(...) arbeitet. Ein Endpoint ist also nicht einfach nur eine normale Funktion, sondern wird durch den Decorator bei FastAPI registriert.
+
+Dafür habe ich eine eigene Datei class_based_decorator.py erstellt und einen einfachen class-based Decorator ausprobiert. Dadurch konnte ich nachvollziehen, wie __call__() verwendet wird und wie eine Funktion erweitert werden kann, ohne ihre eigentliche Logik zu verändern.
+
+Der wichtigste Teil des Tages war anschließend die Arbeit mit der Referenz-Test-Suite des Dozenten. Ich habe die bereitgestellte test_main.py in mein Projekt übernommen, ausgeführt und die Fehlermeldungen analysiert. Am Anfang sind viele Tests fehlgeschlagen, danach habe ich die Ursachen schrittweise behoben.
+
+Am Ende konnte ich die vollständige Test-Suite erfolgreich ausführen, sodass alle Tests bestanden haben. Dadurch habe ich bestätigt, dass meine API nicht nur mit meinen eigenen Tests funktioniert, sondern auch mit den externen Tests des Kurses kompatibel ist.
 
 
-
-
-
----
 
 #### 2. 🚧 What challenges did I face?
 
+Die größte Herausforderung war, dass die Referenz-Test-Suite zunächst viele Fehler ausgegeben hat. Auf den ersten Blick sah es so aus, als wären sehr viele unterschiedliche Dinge kaputt. Nach genauerem Lesen der Fehlermeldungen wurde aber klar, dass viele Fehler dieselbe Ursache hatten.
+
+Ein konkretes Problem war meine Cross-Field-Validation aus dem vorherigen Tag. Ich hatte implementiert, dass Notizen mit der Kategorie "work" zwingend den Tag "work" enthalten müssen. Die Referenztests erwarteten jedoch, dass eine Work-Notiz auch mit anderen Tags wie "urgent" oder "meeting" erstellt werden kann. Dadurch gab meine API 422 zurück, obwohl die Tests 201 Created erwarteten.
+
+Ein weiteres Problem betraf die Datumsfilter created_after und created_before. Diese Parameter waren zunächst als normale Strings definiert. Dadurch wurden ungültige Werte wie "not-a-date" oder "2026-13-01" nicht automatisch abgelehnt, sondern einfach als Text verarbeitet. Die Referenztests erwarteten hier aber einen 422 Fehler.
+
+Zusätzlich hatte ich ein Problem mit der Reihenfolge der Fehlerprüfung bei PUT /notes/{id}. Ein Test wollte prüfen, ob ein Update einer nicht existierenden Notiz korrekt 404 zurückgibt. Durch meine zu strenge Validierung wurde der Request aber schon vorher mit 422 abgelehnt. Dadurch konnte der eigentliche 404-Fall gar nicht erreicht werden.
+
+Eine weitere typische Schwierigkeit war, dass die vielen Testfehler zunächst unübersichtlich waren. Einige Fehler waren echte Failures, andere waren Folgefehler aus Fixtures, weil Testdaten gar nicht erst erstellt werden konnten.
 
 
-
-
-
----
 
 #### 3. 💡 How did I overcome them?
 
+Zuerst habe ich nicht versucht, jeden einzelnen Test isoliert zu reparieren, sondern die Fehlermeldungen nach wiederkehrenden Mustern durchsucht. Dabei habe ich erkannt, dass ein großer Teil der Fehler durch die gleiche Validierungsregel verursacht wurde.
+
+Die Regel, dass Work-Notizen zwingend den Tag "work" enthalten müssen, habe ich entfernt, weil sie zwar als Übung zur Cross-Field-Validation sinnvoll war, aber nicht zum erwarteten API-Vertrag der Referenztests passte. Danach konnten Work-Notizen auch mit anderen sinnvollen Tags erstellt werden, und viele Tests liefen sofort weiter.
+
+Das Problem mit den Datumsfiltern habe ich gelöst, indem ich die Query-Parameter nicht mehr als str, sondern als datetime typisiert habe. Dadurch übernimmt FastAPI/Pydantic automatisch die Validierung. Ungültige Datumswerte werden jetzt korrekt mit 422 abgelehnt, während gültige ISO-Daten weiterhin funktionieren.
+
+Beim PUT-Problem habe ich verstanden, dass zu strenge Input-Validation manchmal verhindert, dass die eigentliche Endpoint-Logik erreicht wird. Nachdem die überstrenge Work-Tag-Regel entfernt war, konnte der Test für eine nicht existierende ID korrekt bis zur Datenbankprüfung laufen und 404 zurückgeben.
+
+Um die vielen Fehlermeldungen besser zu verstehen, habe ich die Tests mehrfach ausgeführt und nach jeder Änderung erneut geprüft. So konnte ich sehen, welche Fehler echte Hauptursachen waren und welche nur Folgefehler. Am Ende waren alle Tests erfolgreich.
 
 
-
-
-
----
-
-### Day 6
+### Week 3, Day 7 ###
 
 #### 1. ✅ What did I accomplish?
 
@@ -538,9 +552,7 @@ Dieser Ansatz hat sich als deutlich stabiler und praxisnäher erwiesen, da er ty
 
 ---
 
-## Week 3
-
-### Day 7
+## Week 3, Day 8 ###
 
 #### 1. ✅ What did I accomplish?
 
@@ -568,8 +580,6 @@ Dieser Ansatz hat sich als deutlich stabiler und praxisnäher erwiesen, da er ty
 
 
 ---
-
-### Day 8
 
 #### 1. ✅ What did I accomplish?
 
