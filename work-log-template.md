@@ -527,30 +527,31 @@ Um die vielen Fehlermeldungen besser zu verstehen, habe ich die Tests mehrfach a
 
 #### 1. ✅ What did I accomplish?
 
+Heute habe ich mein erstes Frontend mit Streamlit entwickelt und mit meiner bestehenden FastAPI Notes-API verbunden. Ich konnte Notes aus der SQLite-Datenbank anzeigen und neue Notes direkt über das Frontend erstellen. Zusätzlich habe ich mehrere erweiterte Funktionen eingebaut, darunter:
 
+- Sidebar mit Statistikdaten,
+- Filter nach Kategorien,
+- Expander für die Anzeige einzelner Notes,
+- automatische Aktualisierung nach dem Erstellen einer Note,
+- Success- und Error-Messages.
 
+Außerdem habe ich die Verbindung zwischen Frontend, Backend und Datenbank erfolgreich getestet. Zum Arbeiten habe ich KI-Unterstützung, die Streamlit-Dokumentation sowie die Python- und FastAPI-Dokumentation verwendet.
 
-
-
----
 
 #### 2. 🚧 What challenges did I face?
 
+Ein Problem entstand bei den Kategorien im Frontend. Im Streamlit-Frontend hatte ich zusätzliche Kategorien wie study, movies und cars eingebaut, die vom Backend jedoch nicht akzeptiert wurden. Dadurch wurde beim Erstellen einer Note ein HTTP-422-Fehler zurückgegeben.
 
+Zusätzlich ist mir aufgefallen, dass plötzlich sehr viele Notes in der Datenbank vorhanden waren. Ursache dafür waren automatisierte Tests aus den vorherigen Tagen, die beim Ausführen viele Test-Notes erstellt hatten.
 
-
-
-
----
 
 #### 3. 💡 How did I overcome them?
 
+Zuerst habe ich die Fehlermeldung analysiert und überprüft, ob das Problem im Frontend oder im Backend liegt. Danach habe ich festgestellt, dass die FastAPI-Validation nur bestimmte Kategorien erlaubt. Ich habe die Kategorien im Streamlit-Frontend angepasst und die selectbox mit den erlaubten Backend-Kategorien synchronisiert. Danach funktionierte die Erstellung neuer Notes korrekt.
+
+Bei den vielen Datenbankeinträgen habe ich geprüft, woher die zusätzlichen Notes kommen. Dabei habe ich erkannt, dass die automatisierten Tests neue Datensätze dauerhaft in notes.db gespeichert hatten. Da technisch alles korrekt funktioniert hat und die Datenpersistenz wie erwartet gearbeitet hat, habe ich die Datenbank bewusst nicht zurückgesetzt.
 
 
-
-
-
----
 
 ## Week 3, Day 8 ###
 
