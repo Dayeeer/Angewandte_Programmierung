@@ -2,17 +2,32 @@
 
 **Student Name: Yeromina Daria** 
 
-### Week 1, Day 1 ###
+This document describes my learning progress and development process during the Applied Programming course at Hochschule Coburg.
+
+The project evolved step by step from simple FastAPI endpoints into a complete Notes API with database integration, automated testing and a Streamlit frontend.
+
+# Table of Contents
+
+- Week 1 – Day 1
+- Week 1 – Day 2
+- Week 1 – Day 3
+- Week 2 – Day 4
+- Week 2 – Day 5
+- Week 2 – Day 6
+- Week 3 – Day 7
+- Week 3 – Day 8
+
+# Week 1, Day 1 
 
 ## ✅ What did I accomplish?
 
 Am ersten Kurstag habe ich meine Entwicklungsumgebung erfolgreich eingerichtet und meine erste API mit FastAPI erstellt.
 
-## Set up
+Set up:
 
 Ich habe Git, VS Code und den Paketmanager uv installiert bzw. überprüft. Die Installation verlief problemlos, da ein Teil der Tools bereits vorhanden war.
 
-## Umsetzung der API
+Umsetzung der API:
 
 Ich habe eine FastAPI-Anwendung erstellt und mehrere Endpoints implementiert:
 
@@ -63,9 +78,9 @@ Ich habe die Probleme gelöst, indem ich:
 - mir die Syntax mit Hilfe von AI erklären lassen habe
 
 
-### Week 1, day 2 ###
+# Week 1, day 2 
 
-### 1. ✅ What did I accomplish?
+## 1. ✅ What did I accomplish?
 
 Am zweiten Kurstag habe ich die Grundlagen von Python vertieft und eine Note-Taking API mit FastAPI erweitert.
 
@@ -90,23 +105,23 @@ Zusätzlich habe ich:
 - Daten persistent gemacht (bleiben nach Neustart erhalten)
 
 
-#### 2. 🚧 What challenges did I face?
+## 2. 🚧 What challenges did I face?
 
-# 1 
+ 1 
 Ein größeres Problem trat nach der Erweiterung mit dem Feld category auf.
 Die bereits gespeicherten Notizen enthielten dieses Feld nicht, wodurch ein 500 Internal Server Error entstand.
 
 
-# 2
+ 2
 Ein weiteres Problem trat bei der Definition der Endpoints auf.
 Der Endpoint /notes/stats wurde nach /notes/{note_id} definiert, wodurch FastAPI die Anfrage falsch interpretiert hat.
 
 Das führte dazu, dass der String "stats" als note_id behandelt wurde, was einen 422 Fehler (Validation Error) verursachte.
 
 
-#### 3. 💡 How did I overcome them?
+## 3. 💡 How did I overcome them?
 
-# 1 
+ 1 
 
 Um das Problem zu lösen, musste ich:
 
@@ -120,15 +135,15 @@ category: str = "general"
 Dadurch wird automatisch eine Standardkategorie gesetzt, falls keine angegeben wird.
 So bleiben auch ältere oder unvollständige Daten kompatibel.
 
-# 2 
+ 2 
 Die Lösung bestand darin, die Reihenfolge der Endpoints zu ändern:
 spezifischere Routen (z. B. /notes/stats) müssen vor allgemeinen Routen (/notes/{note_id}) definiert werden
 Nach der Anpassung funktionierte der Endpoint korrekt.
 
 
-### Week 1, day 3###
+# Week 1, day 3
 
-#### 1. ✅ What did I accomplish?
+## 1. ✅ What did I accomplish?
 
 Am dritten Tag habe ich meine bestehende Note API gezielt erweitert und an die REST-Prinzipien angepasst.
 
@@ -184,7 +199,7 @@ Diese Struktur erleichtert nicht nur das Verständnis, sondern auch zukünftige 
 Dadurch arbeitet die API jetzt mit einer echten Datenbank und ist deutlich realistischer aufgebaut.
 
 
-#### 2. 🚧 What challenges did I face?
+## 2. 🚧 What challenges did I face?
 
 Eine der ersten Herausforderungen war, dass der Server nicht gestartet ist aufgrund eines fehlenden Pakets:
 
@@ -215,7 +230,7 @@ Vor allem bei PATCH war es schwierig sicherzustellen, dass nur die übergebenen 
 
 
 
-#### 3. 💡 How did I overcome them?
+## 3. 💡 How did I overcome them?
 
 Das Problem mit dem fehlenden Paket habe ich direkt über die Installation gelöst:
 
@@ -262,12 +277,9 @@ Durch diesen direkten Vergleich konnte ich das Verhalten klar verstehen und korr
 
 
 
+# Week 2, day 4 
 
----
-
-### Week 2, day 4 ###
-
-#### 1. ✅ What did I accomplish?
+## 1. ✅ What did I accomplish?
 
 Am vierten Tag habe ich mich vollständig auf das Thema Testing von APIs konzentriert und gelernt, wie man bestehende API-Funktionalität systematisch überprüft.
 
@@ -290,7 +302,7 @@ Besonders wichtig war dabei, die Tests so zu strukturieren, dass sie unabhängig
 Am Ende konnte ich meine komplette API automatisiert testen und sicherstellen, dass alle Funktionen stabil und korrekt arbeiten.
 
 
-#### 2. 🚧 What challenges did I face?
+## 2. 🚧 What challenges did I face?
 
 Eine konkrete Schwierigkeit war, dass meine Tests anfangs fehlschlugen, obwohl die API im Browser korrekt funktionierte.
 Das Problem lag daran, dass der Server während des Testlaufs nicht aktiv war, wodurch die Requests keine Verbindung herstellen konnten.
@@ -305,7 +317,7 @@ Auch der Umgang mit PATCH-Tests war anfangs nicht eindeutig.
 Ich musste sicherstellen, dass wirklich nur die übergebenen Felder geändert werden und alle anderen Daten unverändert bleiben.
 
 
-#### 3. 💡 How did I overcome them?
+## 3. 💡 How did I overcome them?
 
 Das Problem mit dem nicht erreichbaren Server habe ich gelöst, indem ich konsequent mit zwei Terminals gearbeitet habe:
 
@@ -329,9 +341,9 @@ Den Unterschied zwischen PUT und PATCH habe ich durch gezielte Tests klar heraus
 
 
 
-## Week 2, day 5 ###
+# Week 2, day 5
 
-#### 1. ✅ What did I accomplish?
+## 1. ✅ What did I accomplish?
 
 Am fünften Tag lag der Fokus auf Datenvalidierung mit Pydantic sowie auf der Vertiefung von automatisierten Tests.
 
@@ -363,7 +375,7 @@ Zusätzlich habe ich im Unterricht mit einem Kommilitonen Tests ausgetauscht und
 
 
 
-#### 2. 🚧 What challenges did I face?
+## 2. 🚧 What challenges did I face?
 
 Beim Ausführen der Tests meines Kommilitonen sind nur 2 von 8 Tests erfolgreich durchgelaufen.
 Die restlichen Tests sind aus mehreren konkreten Gründen fehlgeschlagen:
@@ -422,7 +434,7 @@ Das Problem lag daran, dass die Validierung case-sensitive war und keine Normali
 Dadurch wurden nur exakt passende Werte akzeptiert (z. B. "work"), während "WORK" oder " Work " zu Fehlern führten.
 
 
-#### 3. 💡 How did I overcome them?
+## 3. 💡 How did I overcome them?
 
 Zunächst habe ich die Fehlermeldungen systematisch analysiert und jeden Test einzeln betrachtet, um die Ursache zu verstehen.
 
@@ -480,9 +492,9 @@ Nach dieser Anpassung wurden gültige Eingaben korrekt akzeptiert und gleichzeit
 Dieser Ansatz hat sich als deutlich stabiler und praxisnäher erwiesen, da er typische Nutzereingaben berücksichtigt und gleichzeitig saubere Daten im System garantiert.
 
 
-### Week 2, day 6 ###
+# Week 2, day 6 
 
-#### 1. ✅ What did I accomplish?
+## 1. ✅ What did I accomplish?
 
 Am sechsten Tag lag der Fokus auf zwei Themen: Python Decorators und dem Bestehen der vollständigen Referenz-Test-Suite.
 
@@ -496,7 +508,7 @@ Am Ende konnte ich die vollständige Test-Suite erfolgreich ausführen, sodass a
 
 
 
-#### 2. 🚧 What challenges did I face?
+## 2. 🚧 What challenges did I face?
 
 Die größte Herausforderung war, dass die Referenz-Test-Suite zunächst viele Fehler ausgegeben hat. Auf den ersten Blick sah es so aus, als wären sehr viele unterschiedliche Dinge kaputt. Nach genauerem Lesen der Fehlermeldungen wurde aber klar, dass viele Fehler dieselbe Ursache hatten.
 
@@ -510,7 +522,7 @@ Eine weitere typische Schwierigkeit war, dass die vielen Testfehler zunächst un
 
 
 
-#### 3. 💡 How did I overcome them?
+## 3. 💡 How did I overcome them?
 
 Zuerst habe ich nicht versucht, jeden einzelnen Test isoliert zu reparieren, sondern die Fehlermeldungen nach wiederkehrenden Mustern durchsucht. Dabei habe ich erkannt, dass ein großer Teil der Fehler durch die gleiche Validierungsregel verursacht wurde.
 
@@ -523,9 +535,9 @@ Beim PUT-Problem habe ich verstanden, dass zu strenge Input-Validation manchmal 
 Um die vielen Fehlermeldungen besser zu verstehen, habe ich die Tests mehrfach ausgeführt und nach jeder Änderung erneut geprüft. So konnte ich sehen, welche Fehler echte Hauptursachen waren und welche nur Folgefehler. Am Ende waren alle Tests erfolgreich.
 
 
-### Week 3, Day 7 ###
+# Week 3, Day 7 
 
-#### 1. ✅ What did I accomplish?
+## 1. ✅ What did I accomplish?
 
 Heute habe ich mein erstes Frontend mit Streamlit entwickelt und mit meiner bestehenden FastAPI Notes-API verbunden. Ich konnte Notes aus der SQLite-Datenbank anzeigen und neue Notes direkt über das Frontend erstellen. Zusätzlich habe ich mehrere erweiterte Funktionen eingebaut, darunter:
 
@@ -538,14 +550,14 @@ Heute habe ich mein erstes Frontend mit Streamlit entwickelt und mit meiner best
 Außerdem habe ich die Verbindung zwischen Frontend, Backend und Datenbank erfolgreich getestet. Zum Arbeiten habe ich KI-Unterstützung, die Streamlit-Dokumentation sowie die Python- und FastAPI-Dokumentation verwendet.
 
 
-#### 2. 🚧 What challenges did I face?
+## 2. 🚧 What challenges did I face?
 
 Ein Problem entstand bei den Kategorien im Frontend. Im Streamlit-Frontend hatte ich zusätzliche Kategorien wie study, movies und cars eingebaut, die vom Backend jedoch nicht akzeptiert wurden. Dadurch wurde beim Erstellen einer Note ein HTTP-422-Fehler zurückgegeben.
 
 Zusätzlich ist mir aufgefallen, dass plötzlich sehr viele Notes in der Datenbank vorhanden waren. Ursache dafür waren automatisierte Tests aus den vorherigen Tagen, die beim Ausführen viele Test-Notes erstellt hatten.
 
 
-#### 3. 💡 How did I overcome them?
+## 3. 💡 How did I overcome them?
 
 Zuerst habe ich die Fehlermeldung analysiert und überprüft, ob das Problem im Frontend oder im Backend liegt. Danach habe ich festgestellt, dass die FastAPI-Validation nur bestimmte Kategorien erlaubt. Ich habe die Kategorien im Streamlit-Frontend angepasst und die selectbox mit den erlaubten Backend-Kategorien synchronisiert. Danach funktionierte die Erstellung neuer Notes korrekt.
 
@@ -553,90 +565,66 @@ Bei den vielen Datenbankeinträgen habe ich geprüft, woher die zusätzlichen No
 
 
 
-## Week 3, Day 8 ###
+# Week 3, Day 8 
 
-#### 1. ✅ What did I accomplish?
+## 1. ✅ What did I accomplish?
 
+Am letzten Projekttag habe ich mein gesamtes Repository final strukturiert und für die Abgabe vorbereitet.
 
+Dabei habe ich:
 
+- die Projektstruktur bereinigt,
+- ältere Test- und Experimentdateien in einen separaten exploration-Ordner verschoben,
+- eine .gitignore-Datei erstellt,
+- die Kompatibilität mit den Referenzbefehlen überprüft,
+- das README vollständig dokumentiert,
+- sowie die Konsistenz zwischen Backend, Tests und Frontend kontrolliert.
 
+Zusätzlich habe ich das Streamlit-Frontend nochmals verbessert und die Kategorien zwischen Frontend und Backend synchronisiert.
 
+Ein wichtiger Teil war außerdem die finale Überprüfung der gesamten Anwendung:
 
----
+uv run fastapi dev main.py
+uv run pytest test_main.py -v
+uv run streamlit run frontend.py
 
-#### 2. 🚧 What challenges did I face?
+Dadurch konnte ich sicherstellen, dass das gesamte Projekt reproduzierbar und stabil ausführbar ist.
 
 
+## 2. 🚧 What challenges did I face?
 
+Eine Herausforderung war die Organisation des Repositories.
 
+Im Laufe des Kurses hatten sich viele zusätzliche Dateien angesammelt, darunter:
 
+- ältere Testdateien,
+- experimenteller Code,
+- Datenbankdateien,
+- Cache-Dateien,
+- und verschiedene Zwischenversionen.
 
----
+Dadurch wirkte das Repository zunächst unübersichtlich.
 
-#### 3. 💡 How did I overcome them?
+Zusätzlich gab es erneut ein Problem mit den Kategorien im Streamlit-Frontend.
+Einige auswählbare Kategorien wurden vom Backend nicht akzeptiert, wodurch weiterhin 422-Fehler entstanden.
 
+Außerdem musste ich sicherstellen, dass alle wichtigen Dateien auf der obersten Ebene des Repositories liegen, da diese direkt bewertet werden.
 
 
 
+## 3. 💡 How did I overcome them?
 
+Ich habe das Repository systematisch aufgeräumt und klar strukturiert.
 
----
+Nicht relevante oder experimentelle Dateien habe ich in einen separaten exploration-Ordner verschoben.
+Zusätzlich habe ich eine .gitignore-Datei erstellt, damit lokale Datenbank-, Cache- und Umgebungsdateien nicht versehentlich in Git gespeichert werden.
 
-#### 1. ✅ What did I accomplish?
+Die Kategorien im Frontend habe ich mit den erlaubten Kategorien des Backends synchronisiert, sodass die Validierung jetzt konsistent funktioniert.
 
+Zum Abschluss habe ich alle wichtigen Befehle mehrfach getestet und überprüft, ob das Projekt auch in einer sauberen Umgebung korrekt startet und funktioniert.
 
 
 
-
-
----
-
-#### 2. 🚧 What challenges did I face?
-
-
-
-
-
-
----
-
-#### 3. 💡 How did I overcome them?
-
-
-
-
-
-
----
-
-### Day 9
-
-#### 1. ✅ What did I accomplish?
-
-
-
-
-
-
----
-
-#### 2. 🚧 What challenges did I face?
-
-
-
-
-
-
----
-
-#### 3. 💡 How did I overcome them?
-
-
-
-
-
-
----
 
 
 # 🎉 Congratulations! You did it! 🎓✨
