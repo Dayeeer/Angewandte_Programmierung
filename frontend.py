@@ -128,7 +128,8 @@ with st.form("create_note_form"):
     content = st.text_area("Content")
 
     category = st.selectbox(
-        "Category", ["work", "personal", "school", "study", "movies", "cars"]
+        "Category",
+        ["general", "work", "personal", "school", "ideas"]
     )
 
     tags_input = st.text_input("Tags (comma separated)")
@@ -156,7 +157,8 @@ with st.form("create_note_form"):
 st.header("Filter Notes")
 
 selected_category = st.selectbox(
-    "Filter by category", ["general", "ideas", "personal", "school", "work"]
+    "Filter by category",
+    ["all", "general", "work", "personal", "school", "ideas"]
 )
 
 notes = load_notes()
